@@ -2,7 +2,7 @@
 import React from 'react';
 import { Navigation } from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, LineChart } from '@/components/ui/chart';
+import { BarChart, LineChart } from '@/components/ui/charts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SocialIcon } from '@/components/ui/SocialIcon';
 import { useIsMobile } from '@/hooks/use-mobile';
