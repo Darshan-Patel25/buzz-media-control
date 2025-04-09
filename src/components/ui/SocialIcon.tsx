@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Twitter, Facebook, Instagram, Linkedin, PinterestIcon } from 'lucide-react';
+import { Twitter, Facebook, Instagram, Linkedin, Pinterest } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SocialPlatform } from '@/lib/types';
 
@@ -49,7 +49,7 @@ export const SocialIcon = ({
       case 'linkedin':
         return <Linkedin size={size} />;
       case 'pinterest':
-        return <PinterestIcon size={size} />;
+        return <Pinterest size={size} />;
       case 'tiktok':
         return <TiktokIcon size={size} />;
       default:
