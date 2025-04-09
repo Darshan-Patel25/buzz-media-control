@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Twitter, Facebook, Instagram, Linkedin, PinterestIcon, TiktokIcon } from 'lucide-react';
+import { Twitter, Facebook, Instagram, Linkedin, PinterestIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SocialPlatform } from '@/lib/types';
 

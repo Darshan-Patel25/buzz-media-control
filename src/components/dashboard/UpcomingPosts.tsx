@@ -25,7 +25,7 @@ export const UpcomingPosts = () => {
     },
     {
       id: '2',
-      content: 'We're excited to announce our new product line launching next week! Stay tuned for updates.',
+      content: "We're excited to announce our new product line launching next week! Stay tuned for updates.",
       media: ['https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7'],
       platforms: ['facebook', 'instagram'],
       scheduledDate: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(), // 1 day from now
