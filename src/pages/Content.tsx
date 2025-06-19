@@ -118,7 +118,7 @@ export default function Content() {
                 scheduledDate: post.scheduled_date ? new Date(post.scheduled_date) : undefined,
                 status: post.status === 'failed' ? 'draft' : post.status as 'draft' | 'scheduled' | 'published',
                 socialProfiles: [post.platform],
-                createdAt: post.created_at,
+                createdAt: post.created_at as string,
                 engagement: {
                   likes: post.likes_count || 0,
                   shares: post.shares_count || 0,
