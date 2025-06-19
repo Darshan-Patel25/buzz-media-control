@@ -1,4 +1,3 @@
-
 export interface SocialProfile {
   id: string;
   name: string;
@@ -27,7 +26,7 @@ export interface Post {
   status: 'draft' | 'scheduled' | 'published' | 'failed';
   socialProfiles: string[];
   category?: string;
-  createdAt: Date;
+  createdAt: Date | string;
   engagement?: PostEngagement;
   variations?: PostVariation[];
 }

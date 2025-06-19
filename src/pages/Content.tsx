@@ -202,14 +202,13 @@ export default function Content() {
                 content: post.content,
                 attachments: [],
                 scheduledDate: post.scheduled_date ? new Date(post.scheduled_date) : undefined,
-                status: post.status as 'draft' | 'scheduled' | 'published' | 'failed',
+                status: post.status === 'failed' ? 'draft' : post.status as 'draft' | 'scheduled' | 'published',
                 socialProfiles: [post.platform],
-                createdAt: new Date(post.created_at),
+                createdAt: new Date(post.created_at).toISOString(),
                 engagement: {
                   likes: post.likes_count || 0,
                   shares: post.shares_count || 0,
-                  comments: post.comments_count || 0,
-                  reach: post.reach_count || 0
+                  comments: post.comments_count || 0
                 }
               }}
               variant={viewMode === 'grid' ? 'default' : 'compact'}
