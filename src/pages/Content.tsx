@@ -114,11 +114,10 @@ export default function Content() {
               post={{
                 id: post.id,
                 content: post.content,
-                attachments: [],
-                scheduledDate: post.scheduled_date ? new Date(post.scheduled_date) : undefined,
+                platforms: [post.platform],
                 status: post.status === 'failed' ? 'draft' : post.status as 'draft' | 'scheduled' | 'published',
-                socialProfiles: [post.platform],
-                createdAt: post.created_at,
+                scheduledDate: post.scheduled_date ? new Date(post.scheduled_date).toLocaleDateString() : undefined,
+                scheduledTime: post.scheduled_date ? new Date(post.scheduled_date).toLocaleTimeString() : undefined,
                 engagement: {
                   likes: post.likes_count || 0,
                   shares: post.shares_count || 0,
