@@ -1,0 +1,82 @@
+
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import SocialIcon from '@/components/common/SocialIcon';
+import { SocialPlatform } from '@/types';
+
+interface ConnectedAccountCardProps {
+  platform: SocialPlatform;
+  platformLabel: string;
+  accountName: string;
+  accountUsername: string;
+  followersCount?: number;
+  isConnected: boolean;
+  onConnect: () => void;
+  onDisconnect?: () => void;
+}
+
+const ConnectedAccountCard: React.FC<ConnectedAccountCardProps> = ({
+  platform,
+  platformLabel,
+  accountName,
+  accountUsername,
+  followersCount,
+  isConnected,
+  onConnect,
+  onDisconnect,
+}) => {
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex flex-col items-center text-center">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3">
+            <SocialIcon platform={platform} size={32} />
+          </div>
+          
+          <h3 className="text-lg font-medium mb-1">{platformLabel}</h3>
+          
+          {isConnected ? (
+            <div className="space-y-2 mb-4">
+              <p className="text-sm font-medium">{accountName}</p>
+              <p className="text-sm text-muted-foreground">{accountUsername}</p>
+              {followersCount !== undefined && (
+                <p className="text-xs text-muted-foreground">
+                  {followersCount.toLocaleString()} followers
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground mb-4">
+              Connect your {platformLabel} account
+            </p>
+          )}
+          
+          {isConnected ? (
+            <div className="space-y-2">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Connected
+              </span>
+              {onDisconnect && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onDisconnect}
+                  className="mt-2"
+                >
+                  Disconnect
+                </Button>
+              )}
+            </div>
+          ) : (
+            <Button variant="outline" onClick={onConnect}>
+              Connect
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ConnectedAccountCard;
