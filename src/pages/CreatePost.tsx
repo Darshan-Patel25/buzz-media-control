@@ -9,44 +9,34 @@ import {
   TabsTrigger 
 } from '@/components/ui/tabs';
 import { 
-  Image, 
-  Video, 
-  PenLine,
   Bold, 
   Italic, 
   Underline, 
   Link as LinkIcon,
   Calendar,
   Hash,
-  Sparkles,
   Tag,
   ExternalLink,
   Save,
   X,
   Filter,
   Plus,
-  Clock,
   Edit,
-  Eye,
   Search,
   Send
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 import SocialIcon from '@/components/common/SocialIcon';
 import { SocialPlatform } from '@/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import PlatformSelector from '@/components/post/PlatformSelector';
+import MediaUpload from '@/components/post/MediaUpload';
+import EmojiPicker from '@/components/post/EmojiPicker';
+import AIContentGenerator from '@/components/post/AIContentGenerator';
+import CommentSection from '@/components/post/CommentSection';
 import { useCreatePost, usePosts } from '@/hooks/useSupabaseData';
 import { useToast } from '@/hooks/use-toast';
 
@@ -56,6 +46,8 @@ const CreatePost: React.FC = () => {
   const [postContent, setPostContent] = useState('');
   const [postNow, setPostNow] = useState(true);
   const [activeRightTab, setActiveRightTab] = useState('preview');
+  const [media, setMedia] = useState<{ type: 'image' | 'video' | 'file'; url: string; name: string }[]>([]);
+  const [comments, setComments] = useState<any[]>([]);
 
   const createPostMutation = useCreatePost();
   const { data: drafts = [] } = usePosts();
@@ -101,6 +93,8 @@ const CreatePost: React.FC = () => {
 
       // Reset form
       setPostContent('');
+      setMedia([]);
+      setComments([]);
     } catch (error) {
       toast({
         title: "Error",
@@ -108,6 +102,32 @@ const CreatePost: React.FC = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleMediaAdd = (newMedia: { type: 'image' | 'video' | 'file'; url: string; name: string }) => {
+    setMedia(prev => [...prev, newMedia]);
+  };
+
+  const handleMediaRemove = (index: number) => {
+    setMedia(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    setPostContent(prev => prev + emoji);
+  };
+
+  const handleAIContentGenerated = (content: string) => {
+    setPostContent(content);
+  };
+
+  const handleAddComment = (comment: string) => {
+    const newComment = {
+      id: Date.now().toString(),
+      author: 'You',
+      content: comment,
+      timestamp: new Date(),
+    };
+    setComments(prev => [...prev, newComment]);
   };
 
   return (
@@ -193,15 +213,13 @@ const CreatePost: React.FC = () => {
                     
                     <div className="flex border-t p-2 justify-between items-center">
                       <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto">
-                        <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
-                          <Image className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-8 sm:w-8 bg-blue-100 text-blue-600 flex-shrink-0">
-                          <span className="text-xs sm:text-sm">C</span>
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
-                          <span className="text-sm sm:text-lg">😊</span>
-                        </Button>
+                        <MediaUpload
+                          media={media}
+                          onMediaAdd={handleMediaAdd}
+                          onMediaRemove={handleMediaRemove}
+                        />
+                        <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+                        <AIContentGenerator onContentGenerated={handleAIContentGenerated} />
                         <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
                           <LinkIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
@@ -215,6 +233,19 @@ const CreatePost: React.FC = () => {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Media Preview */}
+                {media.length > 0 && (
+                  <Card>
+                    <CardContent className="p-4">
+                      <MediaUpload
+                        media={media}
+                        onMediaAdd={handleMediaAdd}
+                        onMediaRemove={handleMediaRemove}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
                 
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <Button variant="ghost" className="flex items-center gap-1 justify-start">
@@ -268,8 +299,8 @@ const CreatePost: React.FC = () => {
                         </TabsList>
                       
                         <TabsContent value="preview" className="flex-grow p-3 sm:p-4">
-                          {postContent ? (
-                            <div className="border rounded-lg p-3 sm:p-4">
+                          {postContent || media.length > 0 ? (
+                            <div className="border rounded-lg p-3 sm:p-4 space-y-3">
                               <div className="flex items-center space-x-2 mb-3">
                                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 flex items-center justify-center">
                                   <span className="text-blue-600 font-semibold text-sm">U</span>
@@ -279,20 +310,37 @@ const CreatePost: React.FC = () => {
                                   <p className="text-xs text-gray-500">Just now</p>
                                 </div>
                               </div>
-                              <p className="text-sm sm:text-base mb-3">{postContent}</p>
+                              {postContent && <p className="text-sm sm:text-base mb-3">{postContent}</p>}
+                              {media.length > 0 && (
+                                <div className="grid grid-cols-2 gap-2">
+                                  {media.slice(0, 4).map((item, index) => (
+                                    <div key={index} className="aspect-square bg-gray-100 rounded overflow-hidden">
+                                      {item.type === 'image' ? (
+                                        <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-600">
+                                          {item.name}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="text-center py-8 text-gray-500 flex flex-col items-center justify-center h-full">
-                              <PenLine className="w-8 h-8 sm:w-12 sm:h-12 mb-3 opacity-20" />
+                              <Edit className="w-8 h-8 sm:w-12 sm:h-12 mb-3 opacity-20" />
                               <p className="text-sm">Start typing to see a preview</p>
                             </div>
                           )}
                         </TabsContent>
                         
                         <TabsContent value="comments" className="flex-grow p-3 sm:p-4">
-                          <div className="text-center py-8 text-gray-500">
-                            <p className="text-sm">No comments configuration available</p>
-                          </div>
+                          <CommentSection
+                            postId="preview"
+                            comments={comments}
+                            onAddComment={handleAddComment}
+                          />
                         </TabsContent>
                         
                         <TabsContent value="accounts" className="flex-grow overflow-auto">
