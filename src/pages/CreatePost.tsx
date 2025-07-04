@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,6 +38,7 @@ import AIContentGenerator from '@/components/post/AIContentGenerator';
 import CommentSection from '@/components/post/CommentSection';
 import { useCreatePost, usePosts } from '@/hooks/useSupabaseData';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const CreatePost: React.FC = () => {
   const [activeTab, setActiveTab] = useState('create');
@@ -48,6 +48,9 @@ const CreatePost: React.FC = () => {
   const [activeRightTab, setActiveRightTab] = useState('preview');
   const [media, setMedia] = useState<{ type: 'image' | 'video' | 'file'; url: string; name: string }[]>([]);
   const [comments, setComments] = useState<any[]>([]);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
 
   const createPostMutation = useCreatePost();
   const { data: drafts = [] } = usePosts();
@@ -99,6 +102,76 @@ const CreatePost: React.FC = () => {
       toast({
         title: "Error",
         description: "Failed to create post. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSchedulePost = async () => {
+    if (!postContent.trim()) {
+      toast({
+        title: "Content required",
+        description: "Please enter some content for your post.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedPlatforms.length === 0) {
+      toast({
+        title: "Platform required",
+        description: "Please select at least one platform.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!scheduledDate || !scheduledTime) {
+      toast({
+        title: "Schedule required",
+        description: "Please select both date and time for scheduling.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
+    
+    if (scheduledDateTime <= new Date()) {
+      toast({
+        title: "Invalid schedule",
+        description: "Please select a future date and time.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      for (const platform of selectedPlatforms) {
+        await createPostMutation.mutateAsync({
+          content: postContent,
+          platform,
+          status: 'scheduled',
+          scheduled_date: scheduledDateTime.toISOString(),
+        });
+      }
+
+      toast({
+        title: "Post scheduled",
+        description: `Your post has been scheduled for ${scheduledDateTime.toLocaleString()}.`,
+      });
+
+      // Reset form
+      setPostContent('');
+      setMedia([]);
+      setComments([]);
+      setScheduledDate('');
+      setScheduledTime('');
+      setShowScheduleDialog(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to schedule post. Please try again.",
         variant: "destructive",
       });
     }
@@ -279,10 +352,51 @@ const CreatePost: React.FC = () => {
                       <Send className="h-4 w-4" />
                       {createPostMutation.isPending ? 'Publishing...' : 'Post Now'}
                     </Button>
-                    <Button className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 justify-center">
-                      <Calendar className="h-4 w-4" />
-                      Schedule Post
-                    </Button>
+                    <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+                      <DialogTrigger asChild>
+                        <Button className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 justify-center">
+                          <Calendar className="h-4 w-4" />
+                          Schedule Post
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Schedule Post</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="schedule-date">Date</Label>
+                            <Input 
+                              id="schedule-date"
+                              type="date"
+                              value={scheduledDate}
+                              onChange={(e) => setScheduledDate(e.target.value)}
+                              min={new Date().toISOString().split('T')[0]}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="schedule-time">Time</Label>
+                            <Input 
+                              id="schedule-time"
+                              type="time"
+                              value={scheduledTime}
+                              onChange={(e) => setScheduledTime(e.target.value)}
+                            />
+                          </div>
+                          <div className="flex justify-end space-x-2">
+                            <Button variant="outline" onClick={() => setShowScheduleDialog(false)}>
+                              Cancel
+                            </Button>
+                            <Button 
+                              onClick={handleSchedulePost}
+                              disabled={createPostMutation.isPending}
+                            >
+                              {createPostMutation.isPending ? 'Scheduling...' : 'Schedule Post'}
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </div>
