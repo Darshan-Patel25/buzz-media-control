@@ -20,7 +20,7 @@ const Settings: React.FC = () => {
     label: string;
   } | null>(null);
 
-  const { data: socialAccounts = [] } = useSocialAccounts();
+  const { data: socialAccounts = [], refetch: refetchAccounts } = useSocialAccounts();
 
   const platforms = [
     { id: 'facebook' as SocialPlatform, label: 'Facebook' },
@@ -34,6 +34,12 @@ const Settings: React.FC = () => {
   const handleConnectPlatform = (platform: { id: SocialPlatform; label: string }) => {
     setSelectedPlatform(platform);
     setConnectDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setConnectDialogOpen(false);
+    setSelectedPlatform(null);
+    refetchAccounts();
   };
 
   const getConnectedAccount = (platformId: SocialPlatform) => {
@@ -229,7 +235,9 @@ const Settings: React.FC = () => {
                       accountUsername={connectedAccount?.account_username || ''}
                       followersCount={connectedAccount?.followers_count}
                       isConnected={!!connectedAccount}
+                      accountId={connectedAccount?.id}
                       onConnect={() => handleConnectPlatform(platform)}
+                      onDisconnect={() => refetchAccounts()}
                     />
                   );
                 })}
@@ -459,10 +467,7 @@ const Settings: React.FC = () => {
       {selectedPlatform && (
         <ConnectAccountDialog
           isOpen={connectDialogOpen}
-          onClose={() => {
-            setConnectDialogOpen(false);
-            setSelectedPlatform(null);
-          }}
+          onClose={handleCloseDialog}
           platform={selectedPlatform.id}
           platformLabel={selectedPlatform.label}
         />

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -152,6 +151,54 @@ export const useConnectSocialAccount = () => {
       const { data, error } = await supabase
         .from('social_accounts')
         .insert([{ ...accountData, user_id: user.id }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['social_accounts'] });
+    },
+  });
+};
+
+export const useDisconnectSocialAccount = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (accountId: string) => {
+      const { error } = await supabase
+        .from('social_accounts')
+        .delete()
+        .eq('id', accountId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['social_accounts'] });
+    },
+  });
+};
+
+export const useUpdateSocialAccount = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      id, 
+      ...updates 
+    }: { 
+      id: string; 
+      account_name?: string;
+      account_username?: string;
+      followers_count?: number;
+      is_connected?: boolean;
+    }) => {
+      const { data, error } = await supabase
+        .from('social_accounts')
+        .update(updates)
+        .eq('id', id)
         .select()
         .single();
       

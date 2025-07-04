@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import SocialIcon from '@/components/common/SocialIcon';
 import { SocialPlatform } from '@/types';
+import { useDisconnectSocialAccount } from '@/hooks/useSupabaseData';
+import { useToast } from '@/hooks/use-toast';
 
 interface ConnectedAccountCardProps {
   platform: SocialPlatform;
@@ -12,6 +14,7 @@ interface ConnectedAccountCardProps {
   accountUsername: string;
   followersCount?: number;
   isConnected: boolean;
+  accountId?: string;
   onConnect: () => void;
   onDisconnect?: () => void;
 }
@@ -23,9 +26,32 @@ const ConnectedAccountCard: React.FC<ConnectedAccountCardProps> = ({
   accountUsername,
   followersCount,
   isConnected,
+  accountId,
   onConnect,
   onDisconnect,
 }) => {
+  const disconnectMutation = useDisconnectSocialAccount();
+  const { toast } = useToast();
+
+  const handleDisconnect = async () => {
+    if (!accountId) return;
+    
+    try {
+      await disconnectMutation.mutateAsync(accountId);
+      toast({
+        title: "Account disconnected",
+        description: `Your ${platformLabel} account has been disconnected.`,
+      });
+      onDisconnect?.();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to disconnect account. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card>
       <CardContent className="p-6">
@@ -57,16 +83,15 @@ const ConnectedAccountCard: React.FC<ConnectedAccountCardProps> = ({
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                 Connected
               </span>
-              {onDisconnect && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onDisconnect}
-                  className="mt-2"
-                >
-                  Disconnect
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDisconnect}
+                disabled={disconnectMutation.isPending}
+                className="mt-2"
+              >
+                {disconnectMutation.isPending ? 'Disconnecting...' : 'Disconnect'}
+              </Button>
             </div>
           ) : (
             <Button variant="outline" onClick={onConnect}>
