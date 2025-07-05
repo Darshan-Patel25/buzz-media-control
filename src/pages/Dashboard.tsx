@@ -3,6 +3,8 @@ import React from 'react';
 import ConnectedAccounts from '@/components/dashboard/ConnectedAccounts';
 import QuickActions from '@/components/dashboard/QuickActions';
 import RecentActivity from '@/components/dashboard/RecentActivity';
+import DynamicStats from '@/components/dashboard/DynamicStats';
+import UpcomingPosts from '@/components/dashboard/UpcomingPosts';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard: React.FC = () => {
@@ -19,14 +21,18 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      <DynamicStats />
+      
       <ConnectedAccounts />
       
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2">
           <QuickActions />
         </div>
-        <RecentActivity />
+        <UpcomingPosts />
       </div>
+
+      <RecentActivity />
     </div>
   );
 };
