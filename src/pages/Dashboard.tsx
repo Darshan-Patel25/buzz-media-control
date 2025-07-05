@@ -2,7 +2,6 @@
 import React from 'react';
 import ConnectedAccounts from '@/components/dashboard/ConnectedAccounts';
 import QuickActions from '@/components/dashboard/QuickActions';
-import UpcomingPosts from '@/components/dashboard/UpcomingPosts';
 import RecentActivity from '@/components/dashboard/RecentActivity';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -22,11 +21,9 @@ const Dashboard: React.FC = () => {
 
       <ConnectedAccounts />
       
-      <QuickActions />
-      
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2">
-          <UpcomingPosts />
+          <QuickActions />
         </div>
         <RecentActivity />
       </div>

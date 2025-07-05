@@ -44,7 +44,6 @@ const CreatePost: React.FC = () => {
   const [activeTab, setActiveTab] = useState('create');
   const [selectedPlatforms, setSelectedPlatforms] = useState<SocialPlatform[]>(['linkedin']);
   const [postContent, setPostContent] = useState('');
-  const [postNow, setPostNow] = useState(true);
   const [activeRightTab, setActiveRightTab] = useState('preview');
   const [media, setMedia] = useState<{ type: 'image' | 'video' | 'file'; url: string; name: string }[]>([]);
   const [comments, setComments] = useState<any[]>([]);
@@ -56,7 +55,7 @@ const CreatePost: React.FC = () => {
   const { data: drafts = [] } = usePosts();
   const { toast } = useToast();
 
-  const handleCreatePost = async (isDraft = false) => {
+  const handlePostNow = async () => {
     if (!postContent.trim()) {
       toast({
         title: "Content required",
@@ -80,18 +79,14 @@ const CreatePost: React.FC = () => {
         await createPostMutation.mutateAsync({
           content: postContent,
           platform,
-          status: isDraft ? 'draft' : (postNow ? 'published' : 'scheduled'),
-          scheduled_date: postNow ? undefined : new Date().toISOString(),
+          status: 'published',
+          published_date: new Date().toISOString(),
         });
       }
 
       toast({
-        title: isDraft ? "Draft saved" : "Post created",
-        description: isDraft 
-          ? "Your post has been saved as a draft."
-          : postNow 
-            ? "Your post has been published successfully."
-            : "Your post has been scheduled successfully.",
+        title: "Post published",
+        description: "Your post has been published successfully.",
       });
 
       // Reset form
@@ -101,7 +96,7 @@ const CreatePost: React.FC = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create post. Please try again.",
+        description: "Failed to publish post. Please try again.",
         variant: "destructive",
       });
     }
@@ -172,6 +167,52 @@ const CreatePost: React.FC = () => {
       toast({
         title: "Error",
         description: "Failed to schedule post. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    if (!postContent.trim()) {
+      toast({
+        title: "Content required",
+        description: "Please enter some content for your post.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedPlatforms.length === 0) {
+      toast({
+        title: "Platform required",
+        description: "Please select at least one platform.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      for (const platform of selectedPlatforms) {
+        await createPostMutation.mutateAsync({
+          content: postContent,
+          platform,
+          status: 'draft',
+        });
+      }
+
+      toast({
+        title: "Draft saved",
+        description: "Your post has been saved as a draft.",
+      });
+
+      // Reset form
+      setPostContent('');
+      setMedia([]);
+      setComments([]);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save draft. Please try again.",
         variant: "destructive",
       });
     }
@@ -307,7 +348,6 @@ const CreatePost: React.FC = () => {
                   </CardContent>
                 </Card>
 
-                {/* Media Preview */}
                 {media.length > 0 && (
                   <Card>
                     <CardContent className="p-4">
@@ -336,7 +376,7 @@ const CreatePost: React.FC = () => {
                   <Button 
                     variant="outline" 
                     className="flex items-center gap-2 justify-center"
-                    onClick={() => handleCreatePost(true)}
+                    onClick={handleSaveDraft}
                     disabled={createPostMutation.isPending}
                   >
                     <Save className="h-4 w-4" />
@@ -346,7 +386,7 @@ const CreatePost: React.FC = () => {
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button 
                       className="flex items-center gap-2 bg-green-600 hover:bg-green-700 justify-center"
-                      onClick={() => handleCreatePost(false)}
+                      onClick={handlePostNow}
                       disabled={createPostMutation.isPending}
                     >
                       <Send className="h-4 w-4" />

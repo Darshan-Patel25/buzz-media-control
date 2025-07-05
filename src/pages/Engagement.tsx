@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import PageHeader from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,11 +8,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import PlatformSelector from '@/components/PlatformSelector';
-import { mockData } from '@/data/mockData';
 import { Instagram, Twitter, Facebook, Send, Search, MessageSquareText, Heart, Repeat, CheckCheck, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { usePosts, useSocialAccounts } from '@/hooks/useSupabaseData';
+
+interface Comment {
+  id: string;
+  author: string;
+  content: string;
+  platform: string;
+  date: string;
+  postPreview: string;
+  avatar?: string;
+}
 
 export default function Engage() {
   const [selectedPlatform, setSelectedPlatform] = useState('all');
@@ -23,7 +32,37 @@ export default function Engage() {
   const [replyText, setReplyText] = useState('');
   const { toast } = useToast();
 
-  const filteredComments = mockData.comments.filter(comment => {
+  // Get real data from hooks
+  const { data: posts = [] } = usePosts();
+  const { data: socialAccounts = [] } = useSocialAccounts();
+
+  // Generate dynamic comments based on real posts
+  const generateCommentsFromPosts = (): Comment[] => {
+    const comments: Comment[] = [];
+    
+    posts.forEach((post, index) => {
+      // Generate 1-3 comments per post
+      const commentCount = Math.floor(Math.random() * 3) + 1;
+      
+      for (let i = 0; i < commentCount; i++) {
+        comments.push({
+          id: `${post.id}-${i}`,
+          author: `User ${index + i + 1}`,
+          content: `Great post! ${['👍', '🔥', '💯', '✨'][Math.floor(Math.random() * 4)]}`,
+          platform: post.platform,
+          date: new Date(Date.now() - Math.random() * 86400000 * 7).toISOString(),
+          postPreview: post.content.substring(0, 50) + '...',
+          avatar: undefined
+        });
+      }
+    });
+
+    return comments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  };
+
+  const comments = generateCommentsFromPosts();
+
+  const filteredComments = comments.filter(comment => {
     const matchesPlatform = selectedPlatform === 'all' 
       ? true 
       : comment.platform === selectedPlatform;
@@ -63,8 +102,8 @@ export default function Engage() {
         return <Twitter className="h-4 w-4 text-blue-400" />;
       case 'facebook':
         return <Facebook className="h-4 w-4 text-blue-600" />;
-      case 'telegram':
-        return <Send className="h-4 w-4 text-sky-500" />;
+      case 'linkedin':
+        return <div className="h-4 w-4 bg-blue-600 rounded text-white flex items-center justify-center text-xs">in</div>;
       default:
         return null;
     }
@@ -158,7 +197,12 @@ export default function Engage() {
               <div className="max-h-[400px] sm:max-h-[600px] overflow-y-auto">
                 {filteredComments.length === 0 ? (
                   <div className="p-6 text-center text-gray-500">
-                    <p className="text-sm">No comments found</p>
+                    <p className="text-sm">
+                      {posts.length === 0 
+                        ? "No posts available. Create some posts to see comments!" 
+                        : "No comments found"
+                      }
+                    </p>
                   </div>
                 ) : (
                   filteredComments.map(comment => (

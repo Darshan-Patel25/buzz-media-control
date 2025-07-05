@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
 import SocialIcon from '@/components/common/SocialIcon';
 import { SocialPlatform } from '@/types';
@@ -20,11 +19,9 @@ const ConnectedAccounts: React.FC = () => {
 
   return (
     <div className="mb-8">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h2 className="text-xl font-semibold">Connected Accounts</h2>
-          <p className="text-sm text-muted-foreground">Manage your social media accounts</p>
-        </div>
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold mb-1">Connected Accounts</h2>
+        <p className="text-sm text-muted-foreground">Manage your social media accounts</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -33,10 +30,10 @@ const ConnectedAccounts: React.FC = () => {
           const isConnected = !!connectedAccount;
           
           return (
-            <Card key={account.platform} className="text-center p-6">
+            <Card key={account.platform} className="text-center p-6 bg-white">
               <div className="flex flex-col items-center space-y-3">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center">
-                  <SocialIcon platform={account.platform} size={32} />
+                  <SocialIcon platform={account.platform} size={48} />
                 </div>
                 <div>
                   <p className="font-medium text-sm">{connectedAccount?.account_username || account.username}</p>
@@ -49,7 +46,7 @@ const ConnectedAccounts: React.FC = () => {
           );
         })}
 
-        <Card className="text-center p-6 border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer">
+        <Card className="text-center p-6 border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer bg-white">
           <div className="flex flex-col items-center space-y-3">
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
               <Plus className="h-6 w-6 text-gray-400" />

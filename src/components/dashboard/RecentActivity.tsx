@@ -37,7 +37,7 @@ const RecentActivity: React.FC = () => {
   ];
 
   return (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
         <CardTitle className="text-lg">Recent Activity</CardTitle>
         <p className="text-sm text-muted-foreground">Latest actions from your accounts</p>
@@ -46,8 +46,8 @@ const RecentActivity: React.FC = () => {
         <div className="space-y-4">
           {recentActivities.map((activity) => (
             <div key={activity.id} className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center">
-                <SocialIcon platform={activity.platform} size={18} />
+              <div className="w-10 h-10 rounded-full flex items-center justify-center">
+                <SocialIcon platform={activity.platform} size={24} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">{activity.title}</p>

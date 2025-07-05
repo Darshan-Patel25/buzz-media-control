@@ -50,11 +50,11 @@ const QuickActions: React.FC = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {actions.map((action) => {
           const IconComponent = action.icon;
           return (
-            <Card key={action.title} className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card key={action.title} className="hover:shadow-md transition-shadow cursor-pointer bg-white">
               <CardContent className="p-6">
                 <Link to={action.link} className="block">
                   <div className="flex items-start space-x-4">
@@ -62,8 +62,8 @@ const QuickActions: React.FC = () => {
                       <IconComponent className={`h-5 w-5 ${action.iconColor}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-sm mb-1">{action.title}</h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <h3 className="font-medium text-base mb-1">{action.title}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
                         {action.description}
                       </p>
                     </div>
