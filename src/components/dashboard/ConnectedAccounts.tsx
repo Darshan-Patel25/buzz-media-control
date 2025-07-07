@@ -5,17 +5,15 @@ import { Plus } from 'lucide-react';
 import SocialIcon from '@/components/common/SocialIcon';
 import { SocialPlatform } from '@/types';
 import { useSocialAccounts } from '@/hooks/useSupabaseData';
-import ConnectAccountDialog from '@/components/social/ConnectAccountDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import SocialAccountManager from '@/components/social/SocialAccountManager';
+import { Button } from '@/components/ui/button';
 
 const ConnectedAccounts: React.FC = () => {
-  const { data: socialAccounts = [], refetch } = useSocialAccounts();
-  const [connectDialogOpen, setConnectDialogOpen] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<{
-    id: SocialPlatform;
-    label: string;
-  } | null>(null);
+  const { data: socialAccounts = [] } = useSocialAccounts();
+  const [showConnectDialog, setShowConnectDialog] = useState(false);
 
-  // Available platforms for connection
+  // Available platforms for display
   const availablePlatforms = [
     { id: 'twitter' as SocialPlatform, label: 'Twitter' },
     { id: 'facebook' as SocialPlatform, label: 'Facebook' },
@@ -23,22 +21,20 @@ const ConnectedAccounts: React.FC = () => {
     { id: 'linkedin' as SocialPlatform, label: 'LinkedIn' },
   ];
 
-  const handleConnectPlatform = (platform: { id: SocialPlatform; label: string }) => {
-    setSelectedPlatform(platform);
-    setConnectDialogOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    setConnectDialogOpen(false);
-    setSelectedPlatform(null);
-    refetch();
-  };
-
   return (
     <div className="mb-8">
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold mb-1">Connected Accounts</h2>
-        <p className="text-sm text-muted-foreground">Manage your social media accounts</p>
+      <div className="mb-4 flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-semibold mb-1">Connected Accounts</h2>
+          <p className="text-sm text-muted-foreground">Manage your social media accounts</p>
+        </div>
+        <Button 
+          onClick={() => setShowConnectDialog(true)}
+          size="sm"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Connect Account
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -49,10 +45,9 @@ const ConnectedAccounts: React.FC = () => {
           return (
             <Card 
               key={platform.id} 
-              className={`text-center p-6 bg-white cursor-pointer transition-all hover:shadow-md ${
-                !isConnected ? 'border-dashed border-2 hover:border-primary/50' : ''
+              className={`text-center p-6 bg-white transition-all hover:shadow-md ${
+                !isConnected ? 'border-dashed border-2 opacity-60' : 'border-solid'
               }`}
-              onClick={() => !isConnected && handleConnectPlatform(platform)}
             >
               <div className="flex flex-col items-center space-y-3">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -81,15 +76,7 @@ const ConnectedAccounts: React.FC = () => {
 
         <Card 
           className="text-center p-6 border-dashed border-2 hover:border-primary/50 transition-colors cursor-pointer bg-white"
-          onClick={() => {
-            // Show a list of platforms to connect
-            const unconnectedPlatforms = availablePlatforms.filter(
-              platform => !socialAccounts.find(sa => sa.platform === platform.id && sa.is_connected)
-            );
-            if (unconnectedPlatforms.length > 0) {
-              handleConnectPlatform(unconnectedPlatforms[0]);
-            }
-          }}
+          onClick={() => setShowConnectDialog(true)}
         >
           <div className="flex flex-col items-center space-y-3">
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
@@ -103,14 +90,18 @@ const ConnectedAccounts: React.FC = () => {
         </Card>
       </div>
 
-      {selectedPlatform && (
-        <ConnectAccountDialog
-          isOpen={connectDialogOpen}
-          onClose={handleCloseDialog}
-          platform={selectedPlatform.id}
-          platformLabel={selectedPlatform.label}
-        />
-      )}
+      <Dialog open={showConnectDialog} onOpenChange={setShowConnectDialog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Connect Social Media Accounts</DialogTitle>
+          </DialogHeader>
+          <SocialAccountManager 
+            onAccountConnected={() => {
+              setShowConnectDialog(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
