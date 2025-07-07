@@ -166,7 +166,7 @@ const CreatePost: React.FC = () => {
             <label className="block text-sm font-medium mb-2">Select Platform</label>
             <PlatformSelector
               selectedPlatform={selectedPlatform}
-              onPlatformChange={setSelectedPlatform}
+              onSelect={setSelectedPlatform}
             />
           </div>
 
