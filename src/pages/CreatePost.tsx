@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 
 const CreatePost: React.FC = () => {
   const [content, setContent] = useState('');
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('');
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<Date>();
   const [scheduledTime, setScheduledTime] = useState('');
@@ -31,32 +31,30 @@ const CreatePost: React.FC = () => {
       return;
     }
 
-    if (selectedPlatforms.length === 0) {
+    if (!selectedPlatform) {
       toast({
         title: "Error",
-        description: "Please select at least one platform.",
+        description: "Please select a platform.",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      for (const platform of selectedPlatforms) {
-        await createPostMutation.mutateAsync({
-          content,
-          platform,
-          status: 'published'
-        });
-      }
+      await createPostMutation.mutateAsync({
+        content,
+        platform: selectedPlatform,
+        status: 'published'
+      });
 
       toast({
         title: "Success",
-        description: `Post published to ${selectedPlatforms.join(', ')}!`,
+        description: `Post published to ${selectedPlatform}!`,
       });
 
       // Reset form
       setContent('');
-      setSelectedPlatforms([]);
+      setSelectedPlatform('');
     } catch (error) {
       toast({
         title: "Error",
@@ -76,10 +74,10 @@ const CreatePost: React.FC = () => {
       return;
     }
 
-    if (selectedPlatforms.length === 0) {
+    if (!selectedPlatform) {
       toast({
         title: "Error",
-        description: "Please select at least one platform.",
+        description: "Please select a platform.",
         variant: "destructive",
       });
       return;
@@ -109,23 +107,21 @@ const CreatePost: React.FC = () => {
         return;
       }
 
-      for (const platform of selectedPlatforms) {
-        await createPostMutation.mutateAsync({
-          content,
-          platform,
-          scheduled_date: scheduleDateTime.toISOString(),
-          status: 'scheduled'
-        });
-      }
+      await createPostMutation.mutateAsync({
+        content,
+        platform: selectedPlatform,
+        scheduled_date: scheduleDateTime.toISOString(),
+        status: 'scheduled'
+      });
 
       toast({
         title: "Success",
-        description: `Post scheduled for ${scheduleDateTime.toLocaleString()} on ${selectedPlatforms.join(', ')}!`,
+        description: `Post scheduled for ${scheduleDateTime.toLocaleString()} on ${selectedPlatform}!`,
       });
 
       // Reset form and close dialog
       setContent('');
-      setSelectedPlatforms([]);
+      setSelectedPlatform('');
       setScheduledDate(undefined);
       setScheduledTime('');
       setIsScheduleDialogOpen(false);
@@ -167,10 +163,10 @@ const CreatePost: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Select Platforms</label>
+            <label className="block text-sm font-medium mb-2">Select Platform</label>
             <PlatformSelector
-              selectedPlatforms={selectedPlatforms}
-              onPlatformChange={setSelectedPlatforms}
+              selectedPlatform={selectedPlatform}
+              onPlatformChange={setSelectedPlatform}
             />
           </div>
 

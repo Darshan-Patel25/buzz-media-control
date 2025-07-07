@@ -1,80 +1,104 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Image, BarChart3, RefreshCw } from 'lucide-react';
+import { Plus, Calendar, BarChart3, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSocialAccounts, usePosts } from '@/hooks/useSupabaseData';
 
 const QuickActions: React.FC = () => {
-  const actions = [
+  const { data: socialAccounts = [] } = useSocialAccounts();
+  const { data: posts = [] } = usePosts();
+
+  const connectedAccountsCount = socialAccounts.filter(account => account.is_connected).length;
+  const scheduledPostsCount = posts.filter(post => post.status === 'scheduled').length;
+
+  const quickActions = [
     {
-      title: 'Schedule Post',
-      description: 'Create and schedule content for your accounts',
+      title: 'Create Post',
+      description: 'Create and publish new content',
+      icon: Plus,
+      color: 'bg-blue-500',
+      link: '/create-post',
+      enabled: connectedAccountsCount > 0,
+      disabledMessage: 'Connect an account first'
+    },
+    {
+      title: 'Schedule Posts',
+      description: `${scheduledPostsCount} posts scheduled`,
       icon: Calendar,
-      iconColor: 'text-blue-600',
-      iconBg: 'bg-blue-100',
-      link: '/create-post'
+      color: 'bg-green-500',
+      link: '/schedule',
+      enabled: true
     },
     {
-      title: 'Content Library',
-      description: 'Upload and manage your media assets',
-      icon: Image,
-      iconColor: 'text-green-600',
-      iconBg: 'bg-green-100',
-      link: '/content'
-    },
-    {
-      title: 'Analytics Report',
-      description: 'View insights about your social performance',
+      title: 'View Analytics',
+      description: 'Check your performance',
       icon: BarChart3,
-      iconColor: 'text-purple-600',
-      iconBg: 'bg-purple-100',
-      link: '/analytics'
+      color: 'bg-purple-500',
+      link: '/analytics',
+      enabled: posts.length > 0,
+      disabledMessage: 'Create posts to see analytics'
     },
     {
-      title: 'Sync Accounts',
-      description: 'Refresh data from your connected platforms',
-      icon: RefreshCw,
-      iconColor: 'text-orange-600',
-      iconBg: 'bg-orange-100',
-      link: '/settings'
+      title: 'Manage Accounts',
+      description: `${connectedAccountsCount} accounts connected`,
+      icon: Users,
+      color: 'bg-orange-500',
+      link: '/settings',
+      enabled: true
     }
   ];
 
   return (
-    <div className="mb-8">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Quick Actions</h2>
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/content">View All</Link>
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {actions.map((action) => {
-          const IconComponent = action.icon;
-          return (
-            <Card key={action.title} className="hover:shadow-md transition-shadow cursor-pointer bg-white">
-              <CardContent className="p-6">
-                <Link to={action.link} className="block">
-                  <div className="flex items-start space-x-4">
-                    <div className={`p-3 rounded-lg ${action.iconBg}`}>
-                      <IconComponent className={`h-5 w-5 ${action.iconColor}`} />
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="text-lg">Quick Actions</CardTitle>
+        <p className="text-sm text-muted-foreground">Get things done faster</p>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickActions.map((action) => {
+            const IconComponent = action.icon;
+            
+            return (
+              <div key={action.title} className="relative">
+                <Button
+                  asChild={action.enabled}
+                  variant="outline"
+                  className={`w-full h-24 flex flex-col items-center justify-center space-y-2 p-4 ${
+                    !action.enabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'
+                  }`}
+                  disabled={!action.enabled}
+                >
+                  {action.enabled ? (
+                    <Link to={action.link} className="flex flex-col items-center space-y-2">
+                      <div className={`w-8 h-8 rounded-full ${action.color} flex items-center justify-center`}>
+                        <IconComponent className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-medium text-sm">{action.title}</p>
+                        <p className="text-xs text-muted-foreground">{action.description}</p>
+                      </div>
+                    </Link>
+                  ) : (
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className={`w-8 h-8 rounded-full ${action.color} flex items-center justify-center opacity-50`}>
+                        <IconComponent className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-medium text-sm">{action.title}</p>
+                        <p className="text-xs text-muted-foreground">{action.disabledMessage || action.description}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-base mb-1">{action.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {action.description}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
+                  )}
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
