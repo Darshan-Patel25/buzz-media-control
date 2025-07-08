@@ -143,6 +143,7 @@ export type Database = {
       social_accounts: {
         Row: {
           access_token: string | null
+          access_token_encrypted: string | null
           account_name: string
           account_username: string
           created_at: string
@@ -150,16 +151,20 @@ export type Database = {
           id: string
           is_connected: boolean | null
           last_synced_at: string | null
+          oauth_state: string | null
           oauth_user_id: string | null
           oauth_username: string | null
           platform: string
           refresh_token: string | null
+          refresh_token_encrypted: string | null
           token_expires_at: string | null
+          token_salt: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           access_token?: string | null
+          access_token_encrypted?: string | null
           account_name: string
           account_username: string
           created_at?: string
@@ -167,16 +172,20 @@ export type Database = {
           id?: string
           is_connected?: boolean | null
           last_synced_at?: string | null
+          oauth_state?: string | null
           oauth_user_id?: string | null
           oauth_username?: string | null
           platform: string
           refresh_token?: string | null
+          refresh_token_encrypted?: string | null
           token_expires_at?: string | null
+          token_salt?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           access_token?: string | null
+          access_token_encrypted?: string | null
           account_name?: string
           account_username?: string
           created_at?: string
@@ -184,11 +193,14 @@ export type Database = {
           id?: string
           is_connected?: boolean | null
           last_synced_at?: string | null
+          oauth_state?: string | null
           oauth_user_id?: string | null
           oauth_username?: string | null
           platform?: string
           refresh_token?: string | null
+          refresh_token_encrypted?: string | null
           token_expires_at?: string | null
+          token_salt?: string | null
           updated_at?: string
           user_id?: string
         }

@@ -8,6 +8,7 @@ import SocialIcon from '@/components/common/SocialIcon';
 import { SocialPlatform } from '@/types';
 import { useOAuthFlow } from '@/hooks/useOAuthFlow';
 import OAuthSetupGuide from './OAuthSetupGuide';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SocialAccountManagerProps {
   onAccountConnected?: () => void;
@@ -18,35 +19,49 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
   const updateAccountMutation = useUpdateSocialAccount();
   const { toast } = useToast();
   const { initiateOAuth, isConnecting } = useOAuthFlow();
+  const { user } = useAuth();
 
   const platforms = [
     {
       id: 'twitter' as SocialPlatform,
       name: 'Twitter',
-      description: 'Connect your Twitter account to post tweets',
-      available: true
+      description: 'Connect your Twitter account to post tweets and engage with your audience',
+      available: true,
+      features: ['Post tweets', 'Schedule content', 'View analytics']
     },
     {
       id: 'facebook' as SocialPlatform,
       name: 'Facebook',
-      description: 'Connect your Facebook page to post updates',
-      available: true
+      description: 'Connect your Facebook page to post updates and manage your presence',
+      available: true,
+      features: ['Post updates', 'Manage pages', 'View insights']
     },
     {
       id: 'linkedin' as SocialPlatform,
       name: 'LinkedIn',
-      description: 'Connect your LinkedIn profile to share posts',
-      available: true
+      description: 'Connect your LinkedIn profile to share professional content',
+      available: true,
+      features: ['Share posts', 'Professional networking', 'Business content']
     },
     {
       id: 'instagram' as SocialPlatform,
       name: 'Instagram',
-      description: 'Connect your Instagram account (via Facebook)',
-      available: false // Requires business verification
+      description: 'Connect your Instagram account (requires Facebook Business verification)',
+      available: false,
+      features: ['Photo/video posts', 'Stories', 'Reels']
     }
   ];
 
   const handleConnect = async (platform: SocialPlatform) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to connect social media accounts.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       await initiateOAuth(platform);
       onAccountConnected?.();
@@ -64,7 +79,10 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
     try {
       await updateAccountMutation.mutateAsync({
         id: accountId,
-        is_connected: false
+        is_connected: false,
+        access_token: null,
+        refresh_token: null,
+        oauth_state: null
       });
 
       toast({
@@ -82,18 +100,26 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
     }
   };
 
+  if (!user) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">Please log in to manage your social media accounts.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Connect Social Accounts</h2>
+        <h2 className="text-2xl font-bold mb-2">Connect Social Media Accounts</h2>
         <p className="text-muted-foreground">
-          Connect your social media accounts to start posting and managing your content.
+          Securely connect your social media accounts using OAuth authentication to start posting and managing your content.
         </p>
       </div>
 
       <OAuthSetupGuide />
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
         {platforms.map((platform) => {
           const connectedAccount = socialAccounts.find(
             account => account.platform === platform.id && account.is_connected
@@ -115,7 +141,7 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
               </CardHeader>
               <CardContent>
                 {isConnected ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">{connectedAccount.account_name}</p>
@@ -127,11 +153,29 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
                             {connectedAccount.followers_count.toLocaleString()} followers
                           </p>
                         )}
+                        {connectedAccount.last_synced_at && (
+                          <p className="text-xs text-muted-foreground">
+                            Last synced: {new Date(connectedAccount.last_synced_at).toLocaleDateString()}
+                          </p>
+                        )}
                       </div>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Connected
+                        ✓ Connected
                       </span>
                     </div>
+                    
+                    <div className="border-t pt-3">
+                      <p className="text-sm font-medium mb-2">Available features:</p>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        {platform.features.map((feature, index) => (
+                          <li key={index} className="flex items-center gap-2">
+                            <span className="w-1 h-1 bg-green-500 rounded-full"></span>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -142,16 +186,36 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-3 bg-gray-50">
+                      <p className="text-sm font-medium mb-2">Features you'll get:</p>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        {platform.features.map((feature, index) => (
+                          <li key={index} className="flex items-center gap-2">
+                            <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
                     <Button
                       onClick={() => handleConnect(platform.id)}
                       disabled={!platform.available || isConnecting === platform.id}
                       className="w-full"
                     >
-                      {isConnecting === platform.id ? 'Connecting...' : `Connect ${platform.name}`}
+                      {isConnecting === platform.id ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Connecting...
+                        </div>
+                      ) : (
+                        `Connect ${platform.name}`
+                      )}
                     </Button>
+                    
                     {!platform.available && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground text-center">
                         Coming soon - requires business verification
                       </p>
                     )}
