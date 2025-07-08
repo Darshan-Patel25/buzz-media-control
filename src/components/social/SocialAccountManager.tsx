@@ -80,8 +80,6 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
       await updateAccountMutation.mutateAsync({
         id: accountId,
         is_connected: false,
-        access_token: null,
-        refresh_token: null,
         oauth_state: null
       });
 

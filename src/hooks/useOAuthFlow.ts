@@ -6,6 +6,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { SocialPlatform } from '@/types';
 
+interface OAuthResponse {
+  auth_url: string;
+  state: string;
+  platform: string;
+}
+
 export const useOAuthFlow = () => {
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
   const { toast } = useToast();
@@ -36,13 +42,15 @@ export const useOAuthFlow = () => {
         throw error;
       }
 
-      if (!data || !data.auth_url) {
+      const oauthData = data as OAuthResponse;
+
+      if (!oauthData || !oauthData.auth_url) {
         throw new Error(`OAuth not configured for ${platform}. Please set up OAuth credentials first.`);
       }
 
       // Open OAuth popup with the URL from database
       const popup = window.open(
-        data.auth_url,
+        oauthData.auth_url,
         'oauth',
         'width=600,height=600,scrollbars=yes,resizable=yes'
       );
@@ -59,7 +67,7 @@ export const useOAuthFlow = () => {
           const { data: callbackData } = event.data;
           
           // Validate state token for security
-          if (callbackData.state !== data.state) {
+          if (callbackData.state !== oauthData.state) {
             throw new Error('Invalid OAuth state - possible CSRF attack');
           }
 
