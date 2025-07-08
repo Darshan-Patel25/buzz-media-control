@@ -7,7 +7,6 @@ import { useSocialAccounts, useUpdateSocialAccount } from '@/hooks/useSupabaseDa
 import SocialIcon from '@/components/common/SocialIcon';
 import { SocialPlatform } from '@/types';
 import { useOAuthFlow } from '@/hooks/useOAuthFlow';
-import OAuthSetupGuide from './OAuthSetupGuide';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SocialAccountManagerProps {
@@ -46,8 +45,8 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
     {
       id: 'instagram' as SocialPlatform,
       name: 'Instagram',
-      description: 'Connect your Instagram account (requires Facebook Business verification)',
-      available: false,
+      description: 'Connect your Instagram account for photos and stories',
+      available: true,
       features: ['Photo/video posts', 'Stories', 'Reels']
     }
   ];
@@ -79,8 +78,7 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
     try {
       await updateAccountMutation.mutateAsync({
         id: accountId,
-        is_connected: false,
-        oauth_state: null
+        is_connected: false
       });
 
       toast({
@@ -111,11 +109,25 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
       <div>
         <h2 className="text-2xl font-bold mb-2">Connect Social Media Accounts</h2>
         <p className="text-muted-foreground">
-          Securely connect your social media accounts using OAuth authentication to start posting and managing your content.
+          Connect your social media accounts to start posting and managing your content directly.
         </p>
       </div>
 
-      <OAuthSetupGuide />
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <span className="text-white text-xs">i</span>
+          </div>
+          <div>
+            <p className="text-blue-900 font-medium text-sm">Demo Mode</p>
+            <p className="text-blue-800 text-sm mt-1">
+              This demonstration simulates social media account connections. 
+              In a production environment, you would set up real OAuth applications 
+              with each social media platform to enable actual API access.
+            </p>
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         {platforms.map((platform) => {
@@ -199,7 +211,7 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
 
                     <Button
                       onClick={() => handleConnect(platform.id)}
-                      disabled={!platform.available || isConnecting === platform.id}
+                      disabled={isConnecting === platform.id}
                       className="w-full"
                     >
                       {isConnecting === platform.id ? (
@@ -211,12 +223,6 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
                         `Connect ${platform.name}`
                       )}
                     </Button>
-                    
-                    {!platform.available && (
-                      <p className="text-xs text-muted-foreground text-center">
-                        Coming soon - requires business verification
-                      </p>
-                    )}
                   </div>
                 )}
               </CardContent>
