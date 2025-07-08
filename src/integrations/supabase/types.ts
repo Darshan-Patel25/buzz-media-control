@@ -50,6 +50,39 @@ export type Database = {
         }
         Relationships: []
       }
+      oauth_apps: {
+        Row: {
+          client_id: string
+          client_secret: string
+          created_at: string
+          id: string
+          platform: string
+          redirect_uri: string
+          scopes: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          client_secret: string
+          created_at?: string
+          id?: string
+          platform: string
+          redirect_uri: string
+          scopes?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          client_secret?: string
+          created_at?: string
+          id?: string
+          platform?: string
+          redirect_uri?: string
+          scopes?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           comments_count: number | null
@@ -109,35 +142,53 @@ export type Database = {
       }
       social_accounts: {
         Row: {
+          access_token: string | null
           account_name: string
           account_username: string
           created_at: string
           followers_count: number | null
           id: string
           is_connected: boolean | null
+          last_synced_at: string | null
+          oauth_user_id: string | null
+          oauth_username: string | null
           platform: string
+          refresh_token: string | null
+          token_expires_at: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          access_token?: string | null
           account_name: string
           account_username: string
           created_at?: string
           followers_count?: number | null
           id?: string
           is_connected?: boolean | null
+          last_synced_at?: string | null
+          oauth_user_id?: string | null
+          oauth_username?: string | null
           platform: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          access_token?: string | null
           account_name?: string
           account_username?: string
           created_at?: string
           followers_count?: number | null
           id?: string
           is_connected?: boolean | null
+          last_synced_at?: string | null
+          oauth_user_id?: string | null
+          oauth_username?: string | null
           platform?: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -148,7 +199,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      initiate_oauth_flow: {
+        Args: { platform_name: string; user_id_param: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

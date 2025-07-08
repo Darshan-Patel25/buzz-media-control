@@ -21,17 +21,12 @@ const FacebookOAuth: React.FC = () => {
     }
 
     if (code && state) {
-      const mockUserData = {
-        name: 'Facebook Page',
-        username: '@facebookpage',
-        followers_count: 2500,
-        access_token: code
-      };
-
+      // Send the authorization code to parent window
+      // In production, this code should be sent to your backend to exchange for access token
       window.opener?.postMessage({
         type: 'OAUTH_SUCCESS',
         platform: 'facebook',
-        data: mockUserData
+        data: { code, state }
       }, window.location.origin);
 
       window.close();
@@ -43,6 +38,7 @@ const FacebookOAuth: React.FC = () => {
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
         <p className="text-gray-600">Connecting your Facebook account...</p>
+        <p className="text-sm text-gray-500 mt-2">Please wait while we complete the authentication.</p>
       </div>
     </div>
   );

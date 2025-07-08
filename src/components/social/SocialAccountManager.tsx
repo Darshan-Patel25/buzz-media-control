@@ -6,115 +6,57 @@ import { useToast } from '@/hooks/use-toast';
 import { useSocialAccounts, useUpdateSocialAccount } from '@/hooks/useSupabaseData';
 import SocialIcon from '@/components/common/SocialIcon';
 import { SocialPlatform } from '@/types';
+import { useOAuthFlow } from '@/hooks/useOAuthFlow';
+import OAuthSetupGuide from './OAuthSetupGuide';
 
 interface SocialAccountManagerProps {
   onAccountConnected?: () => void;
 }
 
 const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountConnected }) => {
-  const [isConnecting, setIsConnecting] = useState<string | null>(null);
   const { data: socialAccounts = [], refetch } = useSocialAccounts();
   const updateAccountMutation = useUpdateSocialAccount();
   const { toast } = useToast();
+  const { initiateOAuth, isConnecting } = useOAuthFlow();
 
   const platforms = [
     {
       id: 'twitter' as SocialPlatform,
       name: 'Twitter',
       description: 'Connect your Twitter account to post tweets',
-      authUrl: 'https://api.twitter.com/oauth/authorize',
       available: true
     },
     {
       id: 'facebook' as SocialPlatform,
       name: 'Facebook',
       description: 'Connect your Facebook page to post updates',
-      authUrl: 'https://www.facebook.com/v18.0/dialog/oauth',
       available: true
     },
     {
       id: 'linkedin' as SocialPlatform,
       name: 'LinkedIn',
       description: 'Connect your LinkedIn profile to share posts',
-      authUrl: 'https://www.linkedin.com/oauth/v2/authorization',
       available: true
     },
     {
       id: 'instagram' as SocialPlatform,
       name: 'Instagram',
       description: 'Connect your Instagram account (via Facebook)',
-      authUrl: 'https://api.instagram.com/oauth/authorize',
       available: false // Requires business verification
     }
   ];
 
   const handleConnect = async (platform: SocialPlatform) => {
-    setIsConnecting(platform);
-    
     try {
-      // For demo purposes, simulate OAuth flow
-      // In production, this would redirect to the actual OAuth URL
-      const authWindow = window.open(
-        `/auth/${platform}`,
-        'auth',
-        'width=600,height=600,scrollbars=yes,resizable=yes'
-      );
-
-      // Listen for OAuth callback
-      const handleMessage = (event: MessageEvent) => {
-        if (event.origin !== window.location.origin) return;
-        
-        if (event.data.type === 'OAUTH_SUCCESS') {
-          const { platform: connectedPlatform, data } = event.data;
-          
-          if (connectedPlatform === platform) {
-            // Update or create social account
-            const existingAccount = socialAccounts.find(
-              account => account.platform === platform
-            );
-
-            if (existingAccount) {
-              updateAccountMutation.mutate({
-                id: existingAccount.id,
-                is_connected: true,
-                account_name: data.name,
-                account_username: data.username,
-                followers_count: data.followers_count || 0
-              });
-            }
-
-            toast({
-              title: "Account Connected",
-              description: `Successfully connected your ${platform} account!`,
-            });
-
-            authWindow?.close();
-            onAccountConnected?.();
-            refetch();
-          }
-        }
-      };
-
-      window.addEventListener('message', handleMessage);
-      
-      // Clean up listener when window closes
-      const checkClosed = setInterval(() => {
-        if (authWindow?.closed) {
-          clearInterval(checkClosed);
-          window.removeEventListener('message', handleMessage);
-          setIsConnecting(null);
-        }
-      }, 1000);
-
+      await initiateOAuth(platform);
+      onAccountConnected?.();
     } catch (error) {
-      console.error('OAuth error:', error);
+      console.error('Connection error:', error);
       toast({
         title: "Connection Failed",
         description: "Failed to connect account. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsConnecting(null);
     }
   };
 
@@ -148,6 +90,8 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
           Connect your social media accounts to start posting and managing your content.
         </p>
       </div>
+
+      <OAuthSetupGuide />
 
       <div className="grid gap-4 md:grid-cols-2">
         {platforms.map((platform) => {
@@ -218,28 +162,6 @@ const SocialAccountManager: React.FC<SocialAccountManagerProps> = ({ onAccountCo
           );
         })}
       </div>
-
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <span className="text-blue-600 text-sm font-medium">!</span>
-            </div>
-            <div>
-              <h3 className="font-medium text-blue-900 mb-1">OAuth Setup Required</h3>
-              <p className="text-sm text-blue-800 mb-3">
-                To connect real social media accounts, you'll need to set up OAuth applications 
-                for each platform and configure the redirect URLs.
-              </p>
-              <div className="space-y-2 text-sm text-blue-800">
-                <p><strong>Twitter:</strong> Create an app at developer.twitter.com</p>
-                <p><strong>Facebook:</strong> Create an app at developers.facebook.com</p>
-                <p><strong>LinkedIn:</strong> Create an app at developer.linkedin.com</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

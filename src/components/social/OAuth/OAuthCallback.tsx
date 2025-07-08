@@ -1,9 +1,10 @@
 
 import React, { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 
-const LinkedInOAuth: React.FC = () => {
+const OAuthCallback: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const { platform } = useParams<{ platform: string }>();
 
   useEffect(() => {
     const code = searchParams.get('code');
@@ -13,7 +14,7 @@ const LinkedInOAuth: React.FC = () => {
     if (error) {
       window.opener?.postMessage({
         type: 'OAUTH_ERROR',
-        platform: 'linkedin',
+        platform: platform,
         error: error
       }, window.location.origin);
       window.close();
@@ -21,27 +22,23 @@ const LinkedInOAuth: React.FC = () => {
     }
 
     if (code && state) {
-      // Send the authorization code to parent window
-      // In production, this code should be sent to your backend to exchange for access token
       window.opener?.postMessage({
         type: 'OAUTH_SUCCESS',
-        platform: 'linkedin',
+        platform: platform,
         data: { code, state }
       }, window.location.origin);
-
       window.close();
     }
-  }, [searchParams]);
+  }, [searchParams, platform]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Connecting your LinkedIn account...</p>
-        <p className="text-sm text-gray-500 mt-2">Please wait while we complete the authentication.</p>
+        <p className="text-gray-600">Processing authentication...</p>
       </div>
     </div>
   );
 };
 
-export default LinkedInOAuth;
+export default OAuthCallback;

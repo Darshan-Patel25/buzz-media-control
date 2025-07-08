@@ -11,7 +11,6 @@ const TwitterOAuth: React.FC = () => {
     const error = searchParams.get('error');
 
     if (error) {
-      // Send error to parent window
       window.opener?.postMessage({
         type: 'OAUTH_ERROR',
         platform: 'twitter',
@@ -22,20 +21,12 @@ const TwitterOAuth: React.FC = () => {
     }
 
     if (code && state) {
-      // In a real implementation, you would exchange the code for an access token
-      // For now, we'll simulate a successful connection
-      const mockUserData = {
-        name: 'Twitter User',
-        username: '@twitteruser',
-        followers_count: 1250,
-        access_token: code // In reality, you'd exchange this
-      };
-
-      // Send success data to parent window
+      // Send the authorization code to parent window
+      // In production, this code should be sent to your backend to exchange for access token
       window.opener?.postMessage({
         type: 'OAUTH_SUCCESS',
         platform: 'twitter',
-        data: mockUserData
+        data: { code, state }
       }, window.location.origin);
 
       window.close();
@@ -47,6 +38,7 @@ const TwitterOAuth: React.FC = () => {
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
         <p className="text-gray-600">Connecting your Twitter account...</p>
+        <p className="text-sm text-gray-500 mt-2">Please wait while we complete the authentication.</p>
       </div>
     </div>
   );
