@@ -36,6 +36,18 @@ const OAUTH_CONFIGS: Record<SocialPlatform, Partial<OAuthConfig>> = {
     authUrl: 'https://www.tiktok.com/auth/authorize/',
     scope: 'user.info.basic,video.upload',
   },
+  telegram: {
+    authUrl: 'https://telegram.org/oauth/authorize',
+    scope: 'bot',
+  },
+  pinterest: {
+    authUrl: 'https://www.pinterest.com/oauth/',
+    scope: 'read_public,write_public',
+  },
+  tumblr: {
+    authUrl: 'https://www.tumblr.com/oauth/authorize',
+    scope: 'write',
+  },
 };
 
 export const useOAuthFlow = () => {
