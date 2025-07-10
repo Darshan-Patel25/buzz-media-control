@@ -32,94 +32,72 @@ export const useOAuthFlow = () => {
     setIsConnecting(platform);
     
     try {
-      // For demo purposes, simulate OAuth flow without real API keys
-      // In production, you would call the real OAuth endpoints
-      const mockOAuthData: OAuthResponse = {
-        auth_url: `https://mock-oauth.example.com/${platform}/authorize?state=demo123`,
-        state: 'demo123',
-        platform: platform
-      };
+      // Call our edge function to initiate OAuth
+      const { data, error } = await supabase.functions.invoke('oauth-initiate', {
+        body: { platform }
+      });
 
-      // Simulate OAuth popup
-      const confirmed = window.confirm(
-        `This would normally open ${platform} OAuth in a popup. Click OK to simulate successful connection.`
+      if (error) throw error;
+
+      const { auth_url, state } = data;
+
+      // Open OAuth popup
+      const popup = window.open(
+        auth_url,
+        `oauth_${platform}`,
+        'width=600,height=700,scrollbars=yes,resizable=yes'
       );
 
-      if (confirmed) {
-        // Simulate successful OAuth callback
-        await handleOAuthSuccess(platform, {
-          code: 'mock_auth_code',
-          state: 'demo123'
-        });
+      if (!popup) {
+        throw new Error('Popup blocked. Please allow popups for this site.');
       }
 
-    } catch (error) {
-      console.error('OAuth error:', error);
-      toast({
-        title: "Connection Failed",
-        description: error instanceof Error ? error.message : "Failed to connect account. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsConnecting(null);
-    }
-  }, [toast, user, refetch]);
-
-  const handleOAuthSuccess = async (platform: SocialPlatform, data: any) => {
-    try {
-      // Simulate successful account connection with mock data
-      const mockProfileData = {
-        twitter: {
-          name: 'Twitter User',
-          username: '@twitter_user',
-          followers_count: 1250
-        },
-        facebook: {
-          name: 'Facebook User',
-          username: '@facebook_user',
-          followers_count: 850
-        },
-        linkedin: {
-          name: 'LinkedIn User',
-          username: '@linkedin_user',
-          followers_count: 500
-        },
-        instagram: {
-          name: 'Instagram User',
-          username: '@instagram_user',
-          followers_count: 2100
+      // Listen for OAuth completion
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data.type === 'OAUTH_SUCCESS' && event.data.platform === platform) {
+          window.removeEventListener('message', handleMessage);
+          
+          toast({
+            title: "Account Connected",
+            description: `Successfully connected your ${platform} account!`,
+          });
+          
+          refetch();
+          setIsConnecting(null);
+        } else if (event.data.type === 'OAUTH_ERROR') {
+          window.removeEventListener('message', handleMessage);
+          
+          toast({
+            title: "Connection Failed",
+            description: event.data.error || "Failed to connect account.",
+            variant: "destructive",
+          });
+          
+          setIsConnecting(null);
         }
       };
 
-      const profileData = mockProfileData[platform] || {
-        name: `${platform} User`,
-        username: `@${platform}_user`,
-        followers_count: 100
-      };
+      window.addEventListener('message', handleMessage);
 
-      // Create social account with mock data
-      await connectAccountMutation.mutateAsync({
-        platform,
-        account_name: profileData.name,
-        account_username: profileData.username,
-        followers_count: profileData.followers_count
-      });
+      // Check if popup was closed manually
+      const checkClosed = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkClosed);
+          window.removeEventListener('message', handleMessage);
+          setIsConnecting(null);
+        }
+      }, 1000);
 
-      toast({
-        title: "Account Connected",
-        description: `Successfully connected your ${platform} account!`,
-      });
-      
-      refetch();
     } catch (error) {
-      console.error('OAuth exchange error:', error);
+      console.error('OAuth initiate error:', error);
       toast({
         title: "Connection Failed",
-        description: "Failed to complete account connection. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to initiate OAuth flow.",
         variant: "destructive",
       });
+      setIsConnecting(null);
     }
-  };
+  }, [toast, user, refetch]);
 
   return {
     initiateOAuth,

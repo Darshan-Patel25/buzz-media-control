@@ -145,12 +145,28 @@ export const useConnectSocialAccount = () => {
       account_name: string;
       account_username: string;
       followers_count?: number;
+      oauth_user_id?: string;
+      oauth_username?: string;
+      access_token?: string;
+      refresh_token?: string;
     }) => {
       if (!user) throw new Error('User not authenticated');
       
+      // Use upsert to handle existing accounts
       const { data, error } = await supabase
         .from('social_accounts')
-        .insert([{ ...accountData, user_id: user.id }])
+        .upsert(
+          { 
+            ...accountData, 
+            user_id: user.id,
+            is_connected: true,
+            last_synced_at: new Date().toISOString()
+          },
+          { 
+            onConflict: 'user_id,platform',
+            ignoreDuplicates: false 
+          }
+        )
         .select()
         .single();
       
