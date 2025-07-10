@@ -56,6 +56,7 @@ export type Database = {
           client_secret: string
           created_at: string
           id: string
+          is_active: boolean | null
           platform: string
           redirect_uri: string
           scopes: string[] | null
@@ -66,6 +67,7 @@ export type Database = {
           client_secret: string
           created_at?: string
           id?: string
+          is_active?: boolean | null
           platform: string
           redirect_uri: string
           scopes?: string[] | null
@@ -76,6 +78,7 @@ export type Database = {
           client_secret?: string
           created_at?: string
           id?: string
+          is_active?: boolean | null
           platform?: string
           redirect_uri?: string
           scopes?: string[] | null
@@ -149,6 +152,7 @@ export type Database = {
           created_at: string
           followers_count: number | null
           id: string
+          is_active: boolean | null
           is_connected: boolean | null
           last_synced_at: string | null
           oauth_state: string | null
@@ -170,6 +174,7 @@ export type Database = {
           created_at?: string
           followers_count?: number | null
           id?: string
+          is_active?: boolean | null
           is_connected?: boolean | null
           last_synced_at?: string | null
           oauth_state?: string | null
@@ -191,6 +196,7 @@ export type Database = {
           created_at?: string
           followers_count?: number | null
           id?: string
+          is_active?: boolean | null
           is_connected?: boolean | null
           last_synced_at?: string | null
           oauth_state?: string | null
@@ -211,8 +217,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_account_health: {
+        Args: { account_id: string; user_id_param: string }
+        Returns: Json
+      }
       initiate_oauth_flow: {
         Args: { platform_name: string; user_id_param: string }
+        Returns: Json
+      }
+      update_social_account_status: {
+        Args: { account_id: string; new_status: boolean; user_id_param: string }
         Returns: Json
       }
     }

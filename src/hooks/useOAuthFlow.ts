@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useSocialAccounts, useUpdateSocialAccount } from '@/hooks/useSupabaseData';
+import { useSocialAccounts, useConnectSocialAccount } from '@/hooks/useSupabaseData';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { SocialPlatform } from '@/types';
@@ -16,7 +16,7 @@ export const useOAuthFlow = () => {
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
   const { toast } = useToast();
   const { refetch } = useSocialAccounts();
-  const updateAccountMutation = useUpdateSocialAccount();
+  const connectAccountMutation = useConnectSocialAccount();
   const { user } = useAuth();
 
   const initiateOAuth = useCallback(async (platform: SocialPlatform) => {
@@ -97,17 +97,12 @@ export const useOAuthFlow = () => {
         followers_count: 100
       };
 
-      // Update social account with mock data
-      await updateAccountMutation.mutateAsync({
-        id: '', // This will be handled by the upsert logic
+      // Create social account with mock data
+      await connectAccountMutation.mutateAsync({
         platform,
         account_name: profileData.name,
         account_username: profileData.username,
-        followers_count: profileData.followers_count,
-        is_connected: true,
-        oauth_user_id: `mock_${platform}_id_${Date.now()}`,
-        oauth_username: profileData.username,
-        last_synced_at: new Date().toISOString()
+        followers_count: profileData.followers_count
       });
 
       toast({
